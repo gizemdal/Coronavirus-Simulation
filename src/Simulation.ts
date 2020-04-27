@@ -7,10 +7,6 @@ function getRandomInt(max: number) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
-let minHeight = 5; // minimum height for buildings
-let maxHeight = 30; // maximum height for buildings
-let rad = 5; // radius for building occupance
-
 export default class Simulation {
 
 	agents: Agent[]; // store all the created agents here
@@ -19,14 +15,24 @@ export default class Simulation {
 	locationMap: number[][]; // data structure to store cell occupation: 0 = empty, other = occupied
 	height: number; // simulation height
 	markers: Marker[]; // markers in the simulation
+	numSick: number; // number of sick agents
+	recoverTime: number; // recovery time
+	mode: number; // 0: regular, 1: social distancing
+	stayAgents: number;
+	markerDensity: number;
 
-	constructor(n: number, d: vec2, h: number) {
+	constructor(n: number, d: vec2, h: number, sick: number, recover: number, mode: number, stayPercentage: number, markerDensity: number) {
 		this.agents = [];
 		this.markers = [];
 		this.locationMap = new Array(d[0]).fill(0).map(() => new Array(d[1]).fill(0));
 		this.numAgents = n;
 		this.dimensions = d;
 		this.height = h;
+		this.numSick = sick;
+		this.recoverTime = recover;
+		this.mode = mode;
+		this.stayAgents = Math.floor((stayPercentage / 100.0) * n);
+		this.markerDensity = markerDensity;
 		this.initializeSimulation();
 	}
 
@@ -35,7 +41,7 @@ export default class Simulation {
 		// reset agent id counter
 		resetId();
 		// Create numAgents * 100 markers
-		for (var i = 0; i < this.numAgents * 50; i++) {
+		for (var i = 0; i < this.numAgents * this.markerDensity; i++) {
 			// generate random marker position until it's valid
 			var x = 0;
 			var z = 0;
@@ -67,9 +73,9 @@ export default class Simulation {
 			}
 			var posA = this.markers[idx].pos;
 			var colA = vec3.fromValues(0.0, 1.0, 1.0);
-			var newA = new Agent(posA, colA, idx);
-			if (i > this.numAgents - 10) {
-				// Make 1 agent sick
+			var newA = new Agent(posA, colA, idx, false);
+			if (i >= this.numAgents - this.numSick) {
+				// Make numSick amount of agents sick
 				newA.makeSick(0);
 			}
 			newA.changeDest(this.markers[getRandomInt(this.markers.length)].pos);
@@ -78,11 +84,32 @@ export default class Simulation {
 			// put the agent to the list of agents
 			this.agents.push(newA);
 		}
+		// pick some agents randomly to make them stay if mode is social distancing
+		if (this.mode == 1) {
+			var remaining = this.stayAgents;
+			while (remaining != 0) {
+				var i = Math.floor(Math.random() * this.numAgents);
+				if (!this.agents[i].doesStay) {
+					this.agents[i].makeStay();
+					remaining--;
+				}
+			}
+		}
 	}
 
 	// Simulate the crowd by one tick towards given destination point
 	simulationStep(rad: number, time: number) {
 		for (var a = 0; a < this.agents.length; a++) {
+			// If the agent has been sick for 100 seconds, recover
+			if (this.agents[a].isSick) {
+				if (time - this.agents[a].sickTime > this.recoverTime) {
+					this.agents[a].makeRecovered();
+				}
+			}
+			// if this agent is meant to stay, move to next agent
+			if (this.agents[a].doesStay) {
+				continue;
+			}
 			var maxWeight = -1; // keep track of largest weight
 			var closestMarker = -1;	// keep track of the closest marker index
 			for (var m = 0; m < this.markers.length; m++) {
@@ -140,7 +167,6 @@ export default class Simulation {
 						if (this.markers[closestMarker].agents[i] == this.agents[a].getId()) {
 							continue;
 						}
-						// buraya bak
 						if (this.agents[this.markers[closestMarker].agents[i] - 1].isSick) {
 							this.agents[a].makeSick(time);
 							break;
@@ -160,12 +186,6 @@ export default class Simulation {
 			} else {
 				// if no possible movement found and there is no event, assign a new destination
 				this.agents[a].changeDest(this.markers[getRandomInt(this.markers.length)].pos);
-			}
-			// If the agent has been sick for 100 seconds, recover
-			if (this.agents[a].isSick) {
-				if (time - this.agents[a].sickTime > 150) {
-					this.agents[a].makeRecovered();
-				}
 			}
 		}
 	}

@@ -13,8 +13,9 @@ export class Agent {
 	isSick: boolean; // is the agent sick?
 	isRecovered: boolean; // is the agent recovered?
 	sickTime: number;
+	doesStay: boolean;
 
-	constructor(pos: vec3, col:vec3, mId: number) {
+	constructor(pos: vec3, col:vec3, mId: number, stay: boolean) {
 		this.id = idCount;
 		idCount++; // increment the id counter
 		this.pos = pos;
@@ -24,6 +25,7 @@ export class Agent {
 		this.isSick = false;
 		this.isRecovered = false;
 		this.sickTime = 0;
+		this.doesStay = stay;
 	}
 
 	// Compare two Agent instances by id
@@ -39,6 +41,10 @@ export class Agent {
 	// return agent's position
 	getPos() {
 		return this.pos;
+	}
+
+	makeStay() {
+		this.doesStay = true;
 	}
 
 	makeSick(time: number) {

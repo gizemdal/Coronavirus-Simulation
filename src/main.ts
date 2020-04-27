@@ -14,7 +14,15 @@ import {readTextFile} from './globals';
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
+  mode: 'regular',
   numAgents: 75,
+  numSick: 10,
+  geometry: 'cylinder',
+  recoveryTime: 150,
+  stayPercentage: 10,
+  markerDensity: 25,
+  'Start Simulation': stopSimulation,
+  'Reset Simulation': loadScene,
 };
 
 let agent: Mesh; // agent instance
@@ -23,11 +31,52 @@ let simulation: Simulation; // simulation instance
 let square: Square;
 
 let time: number = 0.0;
-let frameRate: number = 0.0;
 let obj0: string = readTextFile('./obj_files/cylinder.obj');
-let dimensions: vec2 = vec2.fromValues(100, 100);
+let obj1: string = readTextFile('./obj_files/cube.obj');
+let dimensions: vec2 = vec2.fromValues(150, 150);
 let planePos: vec2;
+
+// Keep track of menu changes
 let prevNumAgent: number = 75;
+let prevNumSick: number = 10;
+let prevRecoveryTime: number = 150;
+let prevStayPercentage: number = 10;
+let prevMarkerDensity: number = 10;
+let prevMode: string = 'regular';
+let prevGeometry: string = 'cylinder';
+let isStop: boolean = true;
+
+function stopSimulation() {
+  isStop = !isStop;
+}
+
+// check if a change is made
+function changeMade() {
+  if (controls.numAgents != prevNumAgent) {
+    prevNumAgent = controls.numAgents;
+    return true;
+  } else if (controls.numSick != prevNumSick) {
+    prevNumSick = controls.numSick;
+    return true;
+  } else if (controls.recoveryTime != prevRecoveryTime) {
+    prevRecoveryTime = controls.recoveryTime;
+    return true;
+  } else if (controls.mode != prevMode) {
+    prevMode = controls.mode;
+    return true;
+  } else if (controls.stayPercentage != prevStayPercentage) {
+    prevStayPercentage = controls.stayPercentage;
+    return true;
+  } else if (controls.markerDensity != prevMarkerDensity) {
+    prevMarkerDensity = controls.markerDensity;
+    return true;
+  } else if (controls.geometry != prevGeometry) {
+    prevGeometry = controls.geometry;
+    return true;
+  } else {
+    return false;
+  }
+}
 
 function loadScene() {
 
@@ -41,11 +90,23 @@ function loadScene() {
 
   // Instances
   let center = vec3.fromValues(0.0, 0.0, 0.0);
-  agent = new Mesh(obj0, center); // the agent instance
+  if (controls.geometry == 'cylinder') {
+    agent = new Mesh(obj0, center); // the agent instance
+  } else if (controls.geometry == 'box') {
+    agent = new Mesh(obj1, center); // the agent instance
+  }
   agent.create();
 
-  simulation = new Simulation(controls.numAgents, plane.scale, 0);
+  // get mode
+  if (prevMode == 'regular') {
+    simulation = new Simulation(controls.numAgents, plane.scale, 0, controls.numSick, controls.recoveryTime, 0, controls.stayPercentage, controls.markerDensity);
+  } else if (prevMode == 'social distancing') {
+    simulation = new Simulation(controls.numAgents, plane.scale, 0, controls.numSick, controls.recoveryTime, 1, controls.stayPercentage, controls.markerDensity);
+  }
   planePos = vec2.fromValues(0,0);
+
+  // set time to zero
+  time = 0;
 
     // generate the agents
     let agents = simulation.getAgents();
@@ -151,7 +212,17 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
-  gui.add(controls, 'numAgents', 10, 100).step(1);
+  var agentControls = gui.addFolder('Agent Settings');
+  agentControls.add(controls, 'numAgents', 20, 100).step(1);
+  agentControls.add(controls, 'numSick', 1, 20).step(1);
+  agentControls.add(controls, 'geometry', [ 'cylinder', 'box']);
+  var simSettings = gui.addFolder('Simulation Settings');
+  simSettings.add(controls, 'mode', [ 'regular', 'social distancing']);
+  simSettings.add(controls, 'stayPercentage', 0, 100).step(5);
+  simSettings.add(controls, 'recoveryTime', 100, 1000).step(50);
+  simSettings.add(controls, 'markerDensity', 25, 100).step(1);
+  gui.add(controls, 'Start Simulation');
+  gui.add(controls, 'Reset Simulation');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -166,7 +237,7 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0, 100, 0), vec3.fromValues(0, 0, 0));
+  const camera = new Camera(vec3.fromValues(0, dimensions[0], 0), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
   //renderer.setClearColor(0.5, 0.5, 0.5, 1);
@@ -186,11 +257,10 @@ function main() {
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
     instanceRendering();
     renderer.clear();
-    lambert.setMode(1.0);
-    if (controls.numAgents != prevNumAgent) {
-      prevNumAgent = controls.numAgents;
+    if (changeMade()) {
       loadScene();
     }
+    lambert.setMode(1.0);
     renderer.render(camera, lambert, [
       plane,
     ], time, 0);
@@ -199,12 +269,13 @@ function main() {
       square,
     ], time, 0);
     lambert.setMode(0.0);
-    //renderer.render(camera, flat, [screenQuad], time, 0);
     renderer.render(camera, lambert, [
       agent,
     ],time, 1);
-    simulation.simulationStep(10, time); // simulation step
-    time += 1.0;
+    if (!isStop) {
+      simulation.simulationStep(10, time); // simulation step
+      time += 1.0;
+    }
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame

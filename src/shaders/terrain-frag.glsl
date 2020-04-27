@@ -15,10 +15,6 @@ in vec4 fs_LightVec2;
 out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
 
-// vec2 random2(vec2 p) {
-//     return fract(sin(vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)))) * 43758.5453);
-// }
-
 float random (vec2 p) {
     return fract(sin(dot(p.xy,
                          vec2(12.9898,78.233)))*
@@ -71,17 +67,12 @@ void main()
 
     float ambientTerm = 0.15;
 
-    //float specularIntensity1 = max(pow(dot(normalize(fs_LightVec1), normalize(fs_Nor)), 30.0), 0.0);
-    //float lightIntensity = ((lightIntensity1 + lightIntensity2 + lightIntensity3) / 3.0);
     float lightIntensity1 = diffuseTerm1 + ambientTerm;
     float lightIntensity2 = diffuseTerm2 + ambientTerm;
     if (u_Mode == 0.0) {
         out_Col = vec4(fs_Col.xyz * lightIntensity1 + fs_Col.xyz * lightIntensity2, 1.0);
     } 
     if (u_Mode == 1.0) {
-        //out_Col = fs_Col;
-        //float c = 0.6 * fbm(vec2(fs_Pos.x*0.05, fs_Pos.z*0.05), 3);
-        //out_Col = vec4(vec3(c), 1.0);
         out_Col = vec4(vec3(0.15), 1.0);
     } 
     if (u_Mode == 2.0) {
