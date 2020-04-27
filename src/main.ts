@@ -206,12 +206,15 @@ function main() {
   const stats = Stats();
   stats.setMode(0);
   stats.domElement.style.position = 'absolute';
-  stats.domElement.style.left = '0px';
-  stats.domElement.style.top = '0px';
+  stats.domElement.style.left = '20px';
+  stats.domElement.style.top = '150px';
   document.body.appendChild(stats.domElement);
 
   // Add controls to the gui
-  const gui = new DAT.GUI();
+  var gui = new DAT.GUI({ autoPlace: false });
+  //var gui = new DAT.GUI();
+  var customContainer = document.getElementById('contain-gui');
+  customContainer.appendChild(gui.domElement);
   var agentControls = gui.addFolder('Agent Settings');
   agentControls.add(controls, 'numAgents', 20, 100).step(1);
   agentControls.add(controls, 'numSick', 1, 20).step(1);

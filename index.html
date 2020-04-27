@@ -2,18 +2,46 @@
 <html>
   <head>
       <title>DSGN337: Coronavirus Simulation</title>
+      <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
       <style>
         html, body {
           margin: 0;
           overflow: hidden;
         }
         #canvas {
-          width: 100%;
+          width: 77%;
           height: 100%;
+          margin-top: 10px;
+        }
+        #description {
+          font-family: 'Roboto', sans-serif;
+          margin-top: 20px;
+          margin-left: 20px;
+          margin-bottom: 20px;
+          margin-right: 5px;
+          width: 50%;
+          display: inline-block;
+        }
+        #contain-gui {
+          margin-top: 20px;
+          margin-left: 5px;
+          margin-bottom: 20px;
+          margin-right: 20px;
+          width: 20%;
+          float: right;
+        }
+        p {
+          font-size: 12px;
         }
       </style>
   </head>
   <body>
+    <div id='description'>
+      <h3>Coronavirus Spread Visualization</h3>
+      <p>This visualization is inspired by the coronavirus simulator from Washington Post <a href="https://www.washingtonpost.com/graphics/2020/world/corona-simulator/">here</a>.</p>
+      <p>You can change the number of agents, the density of positions agents can occupy, the number of sick agents and many more properties from the menu on the right to visualize different scenarios.</p>
+    </div>
+    <div id='contain-gui'></div>
     <canvas id="canvas"></canvas>
     <script type="text/javascript" src="dist/bundle.js"></script>
   </body>
