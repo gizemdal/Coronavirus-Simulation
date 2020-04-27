@@ -11,7 +11,6 @@ in vec4 fs_Col;
 in float fs_Type;
 in vec4 fs_LightVec1;
 in vec4 fs_LightVec2;
-in vec4 fs_LightVec3;
 
 out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
@@ -64,41 +63,28 @@ float fbm (vec2 p, int octaves) {
 
 void main()
 {
-    // float diffuseTerm1 = dot(normalize(fs_Nor), normalize(fs_LightVec1));
-    // float diffuseTerm2 = dot(normalize(fs_Nor), normalize(fs_LightVec2));
-    float diffuseTerm3 = dot(normalize(fs_Nor), normalize(fs_LightVec3));
+    float diffuseTerm1 = dot(normalize(fs_Nor), normalize(fs_LightVec1));
+    float diffuseTerm2 = dot(normalize(fs_Nor), normalize(fs_LightVec2));
     // Avoid negative lighting values
-    // diffuseTerm1 = clamp(diffuseTerm1, 0.0, 1.0);
-    // diffuseTerm2 = clamp(diffuseTerm2, 0.0, 1.0);
-    diffuseTerm3 = clamp(diffuseTerm3, 0.0, 1.0);
+    diffuseTerm1 = clamp(diffuseTerm1, 0.0, 1.0);
+    diffuseTerm2 = clamp(diffuseTerm2, 0.0, 1.0);
 
-    float ambientTerm = 0.2;
+    float ambientTerm = 0.15;
 
-    // float lightIntensity1 = diffuseTerm1 + ambientTerm;
-    // float lightIntensity2 = diffuseTerm2 + ambientTerm;
-    float lightIntensity = diffuseTerm3 + ambientTerm;
-    float specularIntensity = max(pow(dot(normalize(fs_LightVec3), normalize(fs_Nor)), 30.0), 0.0);
-    //float lightIntensity = ((lightIntensity2 + lightIntensity3) / 2.0);
+    //float specularIntensity1 = max(pow(dot(normalize(fs_LightVec1), normalize(fs_Nor)), 30.0), 0.0);
+    //float lightIntensity = ((lightIntensity1 + lightIntensity2 + lightIntensity3) / 3.0);
+    float lightIntensity1 = diffuseTerm1 + ambientTerm;
+    float lightIntensity2 = diffuseTerm2 + ambientTerm;
     if (u_Mode == 0.0) {
-        out_Col = vec4(fs_Col.xyz * lightIntensity, 1.0);
+        out_Col = vec4(fs_Col.xyz * lightIntensity1 + fs_Col.xyz * lightIntensity2, 1.0);
     } 
     if (u_Mode == 1.0) {
         //out_Col = fs_Col;
-        float c = 0.6 * fbm(vec2(fs_Pos.x*0.05, fs_Pos.z*0.05), 3);
-        out_Col = vec4(vec3(c), 1.0);
+        //float c = 0.6 * fbm(vec2(fs_Pos.x*0.05, fs_Pos.z*0.05), 3);
+        //out_Col = vec4(vec3(c), 1.0);
+        out_Col = vec4(vec3(0.15), 1.0);
     } 
     if (u_Mode == 2.0) {
-        out_Col = vec4(0.1, 0.45, 0.45, 1.0);
-    }
-    if (fs_Type == 3.0) {
-        vec3 s = vec3(square_wave(fs_Pos.y, 2.0, 5.0));
-        if (length(s) == 0.0) {
-            float d = fs_Pos.y;
-            out_Col = vec4(0.0, 0.5 * sin(mod(u_Time, 200.0) * 0.02 * d / 5.0) + 0.2, 0.5 * (sin(mod(u_Time, 200.0) * 0.02 * d / 5.0)) + 0.2, 1.0);
-        }
-        else {
-            vec3 b = clamp(s + 0.2, 0.0, 1.0);
-            out_Col = vec4(b * lightIntensity + specularIntensity, 1.0);
-        }
+        out_Col = vec4(1.0);
     }
 }

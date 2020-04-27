@@ -44,7 +44,7 @@ export class Agent {
 	makeSick(time: number) {
 		this.isSick = true;
 		// change color
-		this.col = vec3.fromValues(0.73, 0.39, 0.1137);
+		this.col = vec3.fromValues(1.0, 1.0, 0.0);
 		// set sick time
 		this.sickTime = time;
 	}
@@ -53,7 +53,7 @@ export class Agent {
 		this.isSick = false;
 		this.isRecovered = true;
 		// change color
-		this.col = vec3.fromValues(0.796, 0.54, 0.753);
+		this.col = vec3.fromValues(1.0, 0.0, 1.0);
 	}
 
 	// Change the color of the agent

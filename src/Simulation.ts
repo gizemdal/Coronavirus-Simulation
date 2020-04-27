@@ -66,7 +66,7 @@ export default class Simulation {
 				}
 			}
 			var posA = this.markers[idx].pos;
-			var colA = vec3.fromValues(0.667, 0.776, 0.79);
+			var colA = vec3.fromValues(0.0, 1.0, 1.0);
 			var newA = new Agent(posA, colA, idx);
 			if (i > this.numAgents - 10) {
 				// Make 1 agent sick

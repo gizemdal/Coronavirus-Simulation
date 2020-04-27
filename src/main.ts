@@ -166,7 +166,7 @@ function main() {
   // Initial call to load scene
   loadScene();
 
-  const camera = new Camera(vec3.fromValues(0, 30, -20), vec3.fromValues(0, 0, 0));
+  const camera = new Camera(vec3.fromValues(0, 100, 0), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
   //renderer.setClearColor(0.5, 0.5, 0.5, 1);
@@ -203,9 +203,7 @@ function main() {
     renderer.render(camera, lambert, [
       agent,
     ],time, 1);
-    if (time % 3 == 0) {
-      simulation.simulationStep(10, time); // simulation step
-    }
+    simulation.simulationStep(10, time); // simulation step
     time += 1.0;
     stats.end();
 
