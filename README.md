@@ -1,1 +1,1 @@
-Live Demo: https://gizemdal.github.io/coronavirus_simulation/ (works with Google Chrome)
+[Live Demo](https://gizemdal.github.io/coronavirus_simulation/) (works with Google Chrome)
